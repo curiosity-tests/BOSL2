@@ -1,9 +1,28 @@
 name: Checks
+run-name: "Checks ${{ inputs.leg || github.event_name }} ${{ inputs.racecar_run }}"
 on:
   pull_request:
   push:
     branches: [master]
 
+  workflow_dispatch:
+    inputs:
+      leg:
+        description: "baseline (uninstrumented) or instrumented (under chalk/curiosity)"
+        type: choice
+        options: [instrumented, baseline]
+        default: baseline
+      profile:
+        description: "CrashOverride chalk profile"
+        type: string
+        default: curiosity-tests-racecar
+      racecar_run:
+        description: "racecar correlation token, echoed into the run name"
+        type: string
+        default: ""
+
+env:
+  CHALK_ON: ${{ inputs.leg == 'instrumented' }}
 jobs:
   Regressions:
     runs-on: ubuntu-latest
@@ -101,6 +120,7 @@ jobs:
         belfryscad --mdimggen -T
 
   CheckDocs:
+    if: false   # racecar: non-Linux runner, not measured here
     # macOS for speed, not for GL: -T renders nothing, so this job needs no
     # display libraries and the runner is a free choice. Free for
     # correctness, that is -- it is not free for time, which is what the
